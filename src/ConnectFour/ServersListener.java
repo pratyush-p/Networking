@@ -2,6 +2,7 @@ package ConnectFour;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class ServersListener implements Runnable
 {
@@ -31,7 +32,7 @@ public class ServersListener implements Runnable
             while(true)
             {
                 CommandFromClient cfc = (CommandFromClient) is.readObject();
-
+                System.err.println(Arrays.deepToString(gameData.getGrid()));
                 // handle the received command
                 if(cfc.getCommand()==CommandFromClient.MOVE &&
                     turn==player && !gameData.isWinner('X')
@@ -39,8 +40,9 @@ public class ServersListener implements Runnable
                         && !gameData.isCat())
                 {
                     // pulls data for the move from the data field
+                    System.err.println("getting over here very important");
                     String data=cfc.getData();
-                    int c = data.charAt(0) - '0';
+                    int c = data.charAt(0) - '0'; 
                     int r = data.charAt(1) - '0';
 
                     // if the move is invalid it, do not process it
@@ -51,11 +53,39 @@ public class ServersListener implements Runnable
                     gameData.getGrid()[r][c] = player;
 
                     // sends the move out to both players
+                    System.err.println("starting move");
                     sendCommand(new CommandFromServer(CommandFromServer.MOVE,data));
 
                     // changes the turn and checks to see if the game is over
                     changeTurn();
                     checkGameOver();
+                }
+
+                if (cfc.getCommand()==CommandFromClient.RESTART) {
+                    System.err.println("restart thing");
+                    String data = cfc.getData();
+                    if (data.equals("X")) {
+                        sendCommand(new CommandFromServer(CommandFromServer.RESTART, "X"));
+                    } else if (data.equals("O")) {
+                        sendCommand(new CommandFromServer(CommandFromServer.RESTART, "O"));
+                    } else if (data.equals("F")) {
+                        gameData.reset();
+                        if (turn=='O') {
+                            changeTurn();
+                        }
+                        sendCommand(new CommandFromServer(CommandFromServer.RESTART, "F"));
+                        // sendCommand(new CommandFromServer(CommandFromServer.X_TURN, null));
+                        System.err.println("finished restart - turn is: " + turn);
+                    }
+                }
+
+                if (cfc.getCommand()==CommandFromClient.LEAVING) {
+                    char player = cfc.getData().charAt(0);
+                    if (player == 'X') {
+                        outs.get(1).writeObject(new CommandFromServer(CommandFromServer.DISCONNECT, null));
+                    } else {
+                        outs.get(1).writeObject(new CommandFromServer(CommandFromServer.DISCONNECT, null));
+                    }
                 }
             }
         }

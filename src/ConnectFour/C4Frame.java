@@ -4,6 +4,8 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.ObjectOutputStream;
 
 import javax.swing.JFrame;
@@ -29,12 +31,22 @@ public class C4Frame extends JFrame implements MouseListener {
 
         // adds a KeyListener to the Frame
         addMouseListener(this);
+        this.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                try {
+                    os.writeObject(new CommandFromClient(CommandFromClient.LEAVING, "" + player));
+                } catch (Exception ioexp) {
+                    ioexp.printStackTrace();
+                }
+            }
+        });
 
         // makes closing the frame close the program
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
         // Set initial frame message
-        if(player == 'r')
+        if(player == 'X')
             text = "Waiting for Blue to Connect";
 
         setSize(900,700);
@@ -57,8 +69,8 @@ public class C4Frame extends JFrame implements MouseListener {
         // draws the tic-tac-toe grid lines to the screen
         g.setColor(Color.BLACK);
 
-        for (int y = 0; y <= 6; y++) {
-            for (int x = 0; x <= 7; x++) {
+        for (int y = 0; y <= 5; y++) {
+            for (int x = 0; x <= 6; x++) {
                 g.drawOval((x) * (90) + 60, (y) * (90) + 60, 80, 80);
             }
         }
@@ -81,7 +93,7 @@ public class C4Frame extends JFrame implements MouseListener {
 
 
     public void setTurn(String turn) {
-        if(turn=="Red" && player=='X')
+        if((turn=="Red" && player=='X') || (turn=="Blue" && player=='O')) 
             text = "Your turn";
         else
         {
@@ -102,10 +114,41 @@ public class C4Frame extends JFrame implements MouseListener {
         // throw new UnsupportedOperationException("Unimplemented method 'mouseClicked'");
     }
 
+    public void disConnect() {
+        setText("Other player left. Disconnecting in 5 seconds");
+        try {
+            Thread.sleep(5000);
+            System.exit(0); 
+        } catch (Exception e) {
+
+        }
+
+
+    }
+
     @Override
     public void mousePressed(MouseEvent e) {
         // TODO Auto-generated method stub
         // throw new UnsupportedOperationException("Unimplemented method 'mousePressed'");
+
+        if ((gameData.isWinner('X') || gameData.isWinner('O') || gameData.isCat()) && !text.contains("Click") && !text.contains("Ready to")) {
+            try {
+                os.writeObject(new CommandFromClient(CommandFromClient.RESTART, "" + player));
+            } catch (Exception exc) {
+                exc.printStackTrace();
+            }
+            return;
+        } else if (text.contains("Click")) {
+            try {
+                // gameData.reset();
+                os.writeObject(new CommandFromClient(CommandFromClient.RESTART, "F"));
+            } catch (Exception exc) {
+                exc.printStackTrace();
+            }
+            repaint();
+            return;
+        }
+
         int x = e.getX();
         int r = -1;
         int c;
@@ -133,15 +176,34 @@ public class C4Frame extends JFrame implements MouseListener {
             for (int i = gameData.getGrid().length - 1; i >= 0; i--) {
                 if (gameData.getGrid()[i][c] == ' ') {
                     r = i;
+                    break;
                 }
             }
             if (r != -1) {
                 try {
-                    os.writeObject(new CommandFromClient(CommandFromClient.MOVE, "" + c + r + player));
+                    os.writeObject(new CommandFromClient(CommandFromClient.MOVE, "" + c + (r) + player));
                 } catch (Exception exc) {
                     exc.printStackTrace();
                 }    
             }
+        }
+    }
+
+    public void restartCode(char restartPlayer) {
+
+        if (restartPlayer == 'F') {
+            gameData.reset();
+            repaint();
+            setTurn("Red");
+            return;
+        }
+
+        if (restartPlayer == player) {
+            setText("Ready to restart. Waiting for " + (player=='X' ? "Blue" : "Red"));
+            gameData.reset();
+            repaint();
+        } else {
+            setText((player =='X'? "Blue" : "Red") + " wants to restart. Click to restart. ");
         }
     }
 

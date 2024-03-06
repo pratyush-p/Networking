@@ -47,11 +47,18 @@ public class ClientsListener implements Runnable
                 }
                 else if(cfs.getCommand() == CommandFromServer.X_WINS)
                 {
-                    frame.setText("Blue wins!");
+                    frame.setText("Red wins!");
                 }
                 else if(cfs.getCommand() == CommandFromServer.O_WINS)
                 {
-                    frame.setText("Red wins!");
+                    frame.setText("Blue wins!");
+                }
+                else if (cfs.getCommand() == CommandFromServer.RESTART)
+                {
+                    String data = cfs.getData();
+                    frame.restartCode(data.charAt(0));
+                } else if (cfs.getCommand() == CommandFromServer.DISCONNECT) {
+                    frame.disConnect();
                 }
             }
         }

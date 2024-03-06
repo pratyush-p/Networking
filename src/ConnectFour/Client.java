@@ -2,18 +2,10 @@ package ConnectFour;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.Scanner;
-
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-
-import java.awt.Color;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 
 
 public class Client {
-
+  
     public static void main(String[] args) {
         try {
             // create an object for the TTT game
@@ -38,6 +30,7 @@ public class Client {
             ClientsListener cl = new ClientsListener(is,os,frame);
             Thread t = new Thread(cl);
             t.start();
+
         }
         catch(Exception e)
         {
