@@ -15,52 +15,34 @@ import java.awt.event.WindowEvent;
 public class Client {
 
     public static void main(String[] args) {
-        Scanner inputScanner = new Scanner(System.in);
-
-        System.out.println("Enter the IP address of server: ");
-        String IP = inputScanner.nextLine();
         try {
-            Socket mainSocket = new Socket(IP, 3000);
-            ObjectOutputStream output = new ObjectOutputStream(mainSocket.getOutputStream());
-            ObjectInputStream input = new ObjectInputStream(mainSocket.getInputStream());
-            Message connectionMessage = (Message) input.readObject();
-            System.out.println(connectionMessage.message);
-            Thread.sleep(500);
-            mainView();
-            mainLoop(input, output);
-            mainSocket.close();            
-        } catch (Exception e) {
-            System.err.println(e);
+            // create an object for the TTT game
+            GameData gameData = new GameData();
+
+            // create a connection to server
+            Socket socket = new Socket("127.0.0.1",8001);
+            ObjectInputStream is = new ObjectInputStream(socket.getInputStream());
+            ObjectOutputStream os = new ObjectOutputStream(socket.getOutputStream());
+
+            // determine if playing as X or O
+            CommandFromServer cfs = (CommandFromServer) is.readObject();
+            C4Frame frame;
+
+            // Create the Frame based on which player the server says this client is
+            if(cfs.getCommand() == CommandFromServer.CONNECTED_AS_X)
+                frame = new C4Frame(gameData,os,'X');
+            else
+                frame = new C4Frame(gameData,os, 'O');
+
+            // Starts a thread that listens for commands from the server
+            ClientsListener cl = new ClientsListener(is,os,frame);
+            Thread t = new Thread(cl);
+            t.start();
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
         }
     }
 
-    public static void mainView() {
-        JFrame mainFrame = new JFrame("Main Frame");
-        mainFrame.setLayout(null);
-        mainFrame.setBounds(0, 0, 700, 700);
-        mainFrame.setBackground(Color.BLACK);
-
-        JLabel mainLabel = new JLabel("");
-
-        mainFrame.add(mainLabel);
-        createWindow(mainFrame);
-    }
-
-    public static void createWindow(JFrame frame) {
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                // System.err.println("did thing");
-                // writeToFile();
-            }
-        });
-        frame.setResizable(false);
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
-    }
-
-    public static void mainLoop(ObjectInputStream inputStream, ObjectOutputStream outputStream) {
-
-    }
 }
