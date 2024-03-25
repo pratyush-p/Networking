@@ -126,19 +126,20 @@ public class C4Frame extends JFrame implements MouseListener {
 
     }
 
+
     @Override
     public void mousePressed(MouseEvent e) {
         // TODO Auto-generated method stub
         // throw new UnsupportedOperationException("Unimplemented method 'mousePressed'");
 
-        if ((gameData.isWinner('X') || gameData.isWinner('O') || gameData.isCat()) && !text.contains("Click") && !text.contains("Ready to")) {
+        if ((gameData.isWinner('X') || gameData.isWinner('O') || gameData.isCat()) && !text.contains("Click") && !text.contains("Ready to") && e.getButton()==MouseEvent.BUTTON3) {
             try {
                 os.writeObject(new CommandFromClient(CommandFromClient.RESTART, "" + player));
             } catch (Exception exc) {
                 exc.printStackTrace();
             }
             return;
-        } else if (text.contains("Click")) {
+        } else if (text.contains("Click") && e.getButton()==MouseEvent.BUTTON3) {
             try {
                 // gameData.reset();
                 os.writeObject(new CommandFromClient(CommandFromClient.RESTART, "F"));
@@ -200,7 +201,7 @@ public class C4Frame extends JFrame implements MouseListener {
 
         if (restartPlayer == player) {
             setText("Ready to restart. Waiting for " + (player=='X' ? "Blue" : "Red"));
-            gameData.reset();
+            // gameData.reset();
             repaint();
         } else {
             setText((player =='X'? "Blue" : "Red") + " wants to restart. Click to restart. ");
