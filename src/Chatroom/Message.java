@@ -1,6 +1,8 @@
 package Chatroom;
 
-public class Message {
+import java.io.Serializable;
+
+public class Message implements Serializable {
     public String text = "";
     public String name = "John Doe";
 
